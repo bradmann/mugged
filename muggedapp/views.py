@@ -37,6 +37,7 @@ def mugshot(request, id):
 	fbuser = fbapi.fb_call(str(id), args={'access_token': access_token})
 	first_name = fbuser['first_name']
 	last_name = fbuser['last_name']
+	birthday = fbuser.get('birthday')
 	req = requests.get(base_uri, params={'fname': first_name, 'lname': last_name, 'fpartial': 'True'})
 	page = req.content
 	paths = re.findall("<img src='(/thumbs/[^']*)'", page)
@@ -47,4 +48,4 @@ def mugshot(request, id):
 		page = req.content
 		paths = re.findall("<img src='(/thumbs/[^']*)'", page)
 		patharr.extend(paths)
-	return render_to_response('mugshot.html', {'name': fbuser['name'], 'id': str(id), 'patharr': patharr})
+	return render_to_response('mugshot.html', {'name': fbuser['name'], 'id': str(id), 'patharr': patharr, 'birthday': birthday})
