@@ -1,0 +1,9 @@
+<div class="mugshot_container">
+	<h2>{{name}}</h2>
+	<img src="https://graph.facebook.com/{{id}}/picture"/>
+	<div class="shots">
+		{% for path in patharr %}
+		<img src="http://florida.arrests.org{{path}}"/>
+		{% endfor %}
+	</div>
+</div>

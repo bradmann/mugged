@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+{% autoescape off %}
+<script>
+	var friends = {{friends}};
+	for (var idx in friends) {
+		var friend = friends[idx];
+		var name = friend['name'];
+		var id = friend['id'];
+		$.ajax({
+			dataType: 'html',
+			url: 'mugshot/' + id,
+			success: function(data) {
+				$('#contents').append(data);
+			}
+		});
+	}
+</script>
+{% endautoescape %}
+<div id="contents"></div>
+{% endblock %}
