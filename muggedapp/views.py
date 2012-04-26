@@ -37,8 +37,15 @@ def mugshot(request, id):
 	fbuser = fbapi.fb_call(str(id), args={'access_token': access_token})
 	first_name = fbuser['first_name']
 	last_name = fbuser['last_name']
-	birthday = fbuser.get('birthday')
-	req = requests.get(base_uri, params={'fname': first_name, 'lname': last_name, 'fpartial': 'True'})
+	birthday = fbuser.get('birthday', None)
+	gender = fbuser.get('gender', None)
+	request_params = {'fname': first_name, 'lname': last_name, 'fpartial': 'True'}
+	if gender:
+		if gender == 'male':
+			request_params['sex'] = 'M'
+		else:
+			request_params['sex'] = 'F'
+	req = requests.get(base_uri, params=request_params)
 	page = req.content
 	paths = re.findall("<img src='(/thumbs/[^']*)'", page)
 	if len(paths) == 0:
@@ -46,7 +53,8 @@ def mugshot(request, id):
 	pagenum = 1
 	patharr = paths[:]
 	while len(paths) == 42:
-		req = requests.get(base_uri, params={'fname': first_name, 'lname': last_name, 'fpartial': 'True', 'page': pagenum})
+		request_params['page'] = pagenum
+		req = requests.get(base_uri, params=request_params)
 		page = req.content
 		paths = re.findall("<img src='(/thumbs/[^']*)'", page)
 		patharr.extend(paths)
