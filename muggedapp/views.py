@@ -7,6 +7,7 @@ import hmac
 import hashlib
 import requests
 import re
+import datetime
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 
 import fbapi
@@ -32,6 +33,12 @@ def index(request):
 	else:
 		return HttpResponse('This page only supports POSTS')
 		
+def get_age(birthday):
+	month, day, year = birthday.split('/')
+	birthdate = datetime.date(year, month, day)
+	delta = datetime.datetime.now - birthdate
+	return int(delta.days / 365.25)
+		
 def mugshot(request, id):
 	access_token = request.session.get('access_token')
 	fbuser = fbapi.fb_call(str(id), args={'access_token': access_token})
@@ -40,11 +47,14 @@ def mugshot(request, id):
 	birthday = fbuser.get('birthday', None)
 	gender = fbuser.get('gender', None)
 	request_params = {'fname': first_name, 'lname': last_name, 'fpartial': 'True'}
-	if gender:
-		if gender == 'male':
-			request_params['sex'] = 'M'
-		else:
-			request_params['sex'] = 'F'
+	if gender == 'male':
+		request_params['sex'] = 'M'
+	elif gender == 'female':
+		request_params['sex'] = 'F'
+	if birthday and len(birthday.split('/')) == 3:
+		age = get_age(birthday)
+		request_params['minage'] = age
+		request_params['maxage'] = age
 	req = requests.get(base_uri, params=request_params)
 	page = req.content
 	paths = re.findall("<img src='(/thumbs/[^']*)'", page)
