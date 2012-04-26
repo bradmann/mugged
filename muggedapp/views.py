@@ -26,7 +26,7 @@ def index(request):
 				friends = json.loads(r.content)
 				friendarr.extend(friends['data'])
 			friendstring = json.dumps(friendarr)
-			return render_to_response('index.html', {'friends': friendstring})
+			return render_to_response('index.html', {'friends': friendstring, 'friendarr': friendarr})
 		else:
 			return fbapi.oauth_redirect()
 	else:
@@ -41,11 +41,14 @@ def mugshot(request, id):
 	req = requests.get(base_uri, params={'fname': first_name, 'lname': last_name, 'fpartial': 'True'})
 	page = req.content
 	paths = re.findall("<img src='(/thumbs/[^']*)'", page)
-	pagenum = 0
+	if len(paths) == 0:
+		return HttpResponse('', status=204)
+	pagenum = 1
 	patharr = paths[:]
 	while len(paths) == 42:
-		req = requests.get(base_uri, params={'fname': first_name, 'lname': last_name, 'fpartial': 'True'})
+		req = requests.get(base_uri, params={'fname': first_name, 'lname': last_name, 'fpartial': 'True', 'page': pagenum})
 		page = req.content
 		paths = re.findall("<img src='(/thumbs/[^']*)'", page)
 		patharr.extend(paths)
+		pagenum += 1
 	return render_to_response('mugshot.html', {'name': fbuser['name'], 'id': str(id), 'patharr': patharr, 'birthday': birthday})

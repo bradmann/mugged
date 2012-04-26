@@ -2,20 +2,33 @@
 {% block content %}
 {% autoescape off %}
 <script>
-	var friends = {{friends}};
-	for (var idx in friends) {
-		var friend = friends[idx];
-		var name = friend['name'];
-		var id = friend['id'];
-		$.ajax({
-			dataType: 'html',
-			url: 'mugshot/' + id,
-			success: function(data) {
-				$('#contents').append(data);
-			}
-		});
-	}
+	(function() {
+		function getMugshot(id) {
+			$.ajax({
+				dataType: 'html',
+				url: 'mugshot/' + id,
+				success: function(data, status, xhr) {
+					if (xhr.status == 204) {
+						$('#friendthumb_' + id).addClass('dim');
+					} else {
+						$('#contents').append(data);
+					}
+				}
+			});
+		}
+		var friends = {{friends}};
+		for (var idx in friends) {
+			var friend = friends[idx];
+			var name = friend['name'];
+			var id = friend['id'];
+			getMugshot(id);
+		}
+	})()
 </script>
 {% endautoescape %}
-<div id="contents"></div>
+<div id="contents">
+	{% for friend in friendarr %}
+	<img id="friendthumb_{{friend.id}}" src="https://graph.facebook.com/{{friend.id}}/picture" alt="{{friend.name}}"/>
+	{% endfor %}
+</div>
 {% endblock %}
