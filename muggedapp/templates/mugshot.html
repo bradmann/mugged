@@ -2,7 +2,7 @@
 	<h2><img src="https://graph.facebook.com/{{id}}/picture"/> {{name}}</h2>
 	<div class="shots">
 		{% for path in patharr %}
-		<img src="http://florida.arrests.org{{path}}" class="mugshot"/>
+		<img src="http://florida.arrests.org{{path.0}}" class="mugshot"/>
 		{% endfor %}
 	</div>
 </div>

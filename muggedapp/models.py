@@ -1,15 +1,27 @@
 from django.db import models
 
 class FacebookUser(models.Model):
-	fbid = models.CharField(max_length=255)
-	name = models.CharField(max_length=255)
-	avatar_url = models.URLField(max_length=1023)
-	last_searched = models.DateTimeField()
+	fbid = models.CharField(primary_key=True, max_length=255)
 	
 	def __unicode__(self):
-		return self.name
-	
+		return self.fbid	
 
+class MugshotSearch(models.Model):
+	fbuser = models.ForeignKey('FacebookUser')
+	fname = models.CharField(max_length=255)
+	lname = models.CharField(max_length=255)
+	birthdate = models.CharField(max_length=20)
+	gender = models.CharField(max_length=1)
+	last_searched = models.DateTimeField()
+	
+	class Meta:
+		unique_together = ('fname', 'lname', 'birthdate', 'gender')
+		
+class MugshotSearchResult(models.Model):
+	search = models.ForeignKey('MugshotSearch')
+	thumbpath = models.URLField(max_length=1023)
+	arrestpath = models.URLField(max_length=1023)
+	
 class Arrest(models.Model):
 	fbuser = models.ForeignKey(FacebookUser)
 	name = models.CharField(max_length=255)
