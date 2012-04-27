@@ -24,13 +24,9 @@ class FBAuthMiddleware:
 		return HttpResponse("<script>var oauth_url = 'https://www.facebook.com/dialog/oauth/?client_id={0}&redirect_uri=' + encodeURIComponent('https://apps.facebook.com/{1}/') + '&scope={2}';window.top.location = oauth_url;</script>".format(settings.FBAPI_APP_ID, settings.FBAPI_APP_NAMESPACE, ','.join(settings.FBAPI_SCOPE)))
 
 	def process_request(self, request):
-		access_token = request.session.get('access_token', None)
+		access_token = self.get_token(request.POST.get('signed_request'))
 		if not access_token:
-			access_token = self.get_token(request.POST.get('signed_request'))
-			if not access_token:
-				return self.oauth_redirect()
-			else:
-				request.session['access_token'] = access_token
-				return None
+			return self.oauth_redirect()
 		else:
+			request.session['access_token'] = access_token
 			return None
