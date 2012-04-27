@@ -102,6 +102,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     # Uncomment the next line for simple clickjacking protection:
     # 'django.middleware.clickjacking.XFrameOptionsMiddleware',
+	'muggedapp.middleware.fbauth.FBAuthMiddleware'
 )
 
 ROOT_URLCONF = 'mugged.urls'
