@@ -27,7 +27,7 @@ class FBAuthMiddleware:
 		signed_request = request.POST.get('signed_request', None)
 		if not signed_request:
 			return None
-		access_token = self.get_token()
+		access_token = self.get_token(signed_request)
 		if not access_token:
 			return self.oauth_redirect()
 		else:
