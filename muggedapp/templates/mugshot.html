@@ -2,7 +2,13 @@
 	<h2><img src="https://graph.facebook.com/{{id}}/picture"/> {{name}}</h2>
 	<div class="shots">
 		{% for path in patharr %}
-		<img src="http://florida.arrests.org{{path.0}}" class="mugshot"/>
+		<div class="mug_container">
+			<img src="http://florida.arrests.org{{path.thumbpath}}" class="mugshot"/>
+			{% if path.matches_user == None %}
+			<a href="#" class="button save" data-arrestpath="{{path.arrestpath}}" data-thumbpath="{{path.thumbpath}}" data-id="{{id}}">Accept</a>
+			<a href="#" class="button delete" data-arrestpath="{{path.arrestpath}}" data-thumbpath="{{path.thumbpath}}" data-id="{{id}}">Reject</a>
+			{% endif %}
+		</div>
 		{% endfor %}
 	</div>
 </div>

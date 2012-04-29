@@ -7,21 +7,22 @@ class FacebookUser(models.Model):
 		return self.fbid	
 
 class MugshotSearch(models.Model):
-	fbuser = models.ForeignKey('FacebookUser')
+	fbuser = models.ForeignKey(FacebookUser)
 	fname = models.CharField(max_length=255)
 	lname = models.CharField(max_length=255)
-	birthdate = models.CharField(max_length=20)
-	gender = models.CharField(max_length=1)
+	birthdate = models.DateField(blank=True, null=True)
+	gender = models.CharField(max_length=1, blank=True, null=True)
 	last_searched = models.DateTimeField()
 	
 	class Meta:
 		unique_together = ('fname', 'lname', 'birthdate', 'gender')
 		
 class MugshotSearchResult(models.Model):
-	search = models.ForeignKey('MugshotSearch')
+	search = models.ForeignKey(MugshotSearch)
 	thumbpath = models.URLField(max_length=1023)
 	arrestpath = models.URLField(max_length=1023)
-	
+	matches_user = models.NullBooleanField()
+
 class Arrest(models.Model):
 	fbuser = models.ForeignKey(FacebookUser)
 	name = models.CharField(max_length=255)

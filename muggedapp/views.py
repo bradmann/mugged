@@ -13,9 +13,18 @@ def index(request):
 	friendstring = json.dumps(friendarr)
 	return render_to_response('index.html', {'friends': friendstring, 'friendarr': friendarr})
 		
+@require_http_methods(['GET', 'POST'])
 def mugshot(request, id):
-	fbuser = fbapi.get_user(request, id)
-	patharr = mugapi.run_search(request, fbuser)
-	if not patharr:
+	if request.method == 'GET':
+		fbuser = fbapi.get_user(request, id)
+		patharr = mugapi.search_and_update(fbuser)
+		if not patharr:
+			return HttpResponse('', status=204)
+		return render_to_response('mugshot.html', {'name': fbuser['name'], 'id': str(id), 'patharr': patharr})
+	else:
+		post = json.loads(request.raw_post_data)
+		if post['action'] == 'verify_mugshot':
+			mugapi.verify(id, post['arrest'])
+		elif post['action'] == 'reject_mugshot':
+			mugapi.reject(id, post['arrest'])
 		return HttpResponse('', status=204)
-	return render_to_response('mugshot.html', {'name': fbuser['name'], 'id': str(id), 'patharr': patharr})
