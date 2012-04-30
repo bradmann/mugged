@@ -1,9 +1,9 @@
 <div class="mugshot_container">
-	<h2><img src="https://graph.facebook.com/{{id}}/picture"/> {{name}}</h2>
+	<h2><img src="https://graph.facebook.com/{{id}}/picture"/> {{name}} <a href="#" class="button save all" data-id="{{id}}">Verify All</a><a href="#" class="button delete all" data-id="{{id}}">Reject All</a></h2>
 	<div class="shots">
 		{% for path in patharr %}
-		<div class="mug_container">
-			<img src="http://florida.arrests.org{{path.thumbpath}}" class="mugshot"/>
+		<div class="mug_container {% if path.matches_user %}verified{% endif %}">
+			<a href="http://florida.arrests.org{{path.arrestpath}}" target="_blank"><img src="http://florida.arrests.org{{path.thumbpath}}" class="mugshot"/></a>
 			{% if path.matches_user == None %}
 			<a href="#" class="button save" data-arrestpath="{{path.arrestpath}}" data-thumbpath="{{path.thumbpath}}" data-id="{{id}}">Accept</a>
 			<a href="#" class="button delete" data-arrestpath="{{path.arrestpath}}" data-thumbpath="{{path.thumbpath}}" data-id="{{id}}">Reject</a>

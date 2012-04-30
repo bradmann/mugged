@@ -27,4 +27,8 @@ def mugshot(request, id):
 			mugapi.verify(id, post['arrest'])
 		elif post['action'] == 'reject_mugshot':
 			mugapi.reject(id, post['arrest'])
+		elif post['action'] == 'verify_all':
+			mugapi.verify_all(id)
+		elif post['action'] == 'reject_all':
+			mugapi.reject_all(id)
 		return HttpResponse('', status=204)

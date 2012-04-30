@@ -6,62 +6,96 @@
 		$('a.button.save').live('click', function(evt){
 			evt.preventDefault();
 			var self = this;
+			var data;
+			var verifyAll = false;
+			if ($(self).hasClass('all')) {
+				data = '{"action": "verify_all"}';
+				verifyAll = true;
+			} else {
+				data = '{"action": "verify_mugshot", "arrest": "' + $(this).data('arrestpath') + '"}';
+			}
 			$.ajax({
 				type: 'POST',
 				dataType: 'json',
 				contentType: 'application/json',
-				data: '{"action": "verify_mugshot", "arrest": "' + $(this).data('arrestpath') + '"}',
+				data: data,
 				url: '/mugshot/' + $(this).data('id'),
 				success: function(data) {
-					$(self).parent().find('a.button').remove();
+					if (verifyAll) {
+						$(self).parents('div.mugshot_container').find('div.mug_container:not(.verified)').addClass('verified');
+						$(self).parents('div.mugshot_container').find('a.button').remove();
+					} else {
+						$(self).parents('div.mug_container').addClass('verified');
+						$(self).parent().find('a.button').remove();
+					}
 				}
 			});
 		});
 		$('a.button.delete').live('click', function(evt){
 			evt.preventDefault();
 			var self = this;
+			var data;
+			var deleteAll = false;
+			if ($(self).hasClass('all')) {
+				data = '{"action": "reject_all"}';
+				deleteAll = true;
+			} else {
+				data = '{"action": "reject_mugshot", "arrest": "' + $(this).data('arrestpath') + '"}';
+			}
 			$.ajax({
 				type: 'POST',
 				contentType: 'application/json',
 				dataType: 'json',
-				data: '{"action": "reject_mugshot", "arrest": "' + $(this).data('arrestpath') + '"}',
+				data: data,
 				url: '/mugshot/' + $(this).data('id'),
 				success: function(data) {
-					var parent = $(self).parent();
-					if (parent.siblings('div.mug_container').length == 0) {
-						parent.parents('div.mugshot_container').remove();
+					var parent = $(self).parents('div.mugshot_container');
+					if (deleteAll) {
+						parent.find('div.mug_container:not(.verified)').remove();
 					} else {
+						$(self).parent().remove();
+					}
+					if (parent.find('div.mug_container').length == 0) {
 						parent.remove();
 					}
 				}
 			});
 		});
-		function getMugshot(id) {
+		function getMugshot(id, name) {
 			$.ajax({
 				dataType: 'html',
 				url: 'mugshot/' + id,
 				success: function(data, status, xhr) {
-					if (xhr.status == 204) {
-						$('#friendthumb_' + id).addClass('dim');
-					} else {
+					if (xhr.status != 204) {
 						$('#contents').append(data);
+					}
+					friendCount++;
+					var width = friendCount * 100/numFriends;
+					$('#progress').width(width.toString() + '%');
+					if (width != 100) {
+						$('#progresstext').text('Search complete for ' + name);
+					} else {
+						$('#progress_container').slideUp();
 					}
 				}
 			});
 		}
 		var friends = {{friends}};
+		var numFriends = friends.length;
+		var friendCount = 0;
 		for (var idx in friends) {
 			var friend = friends[idx];
 			var name = friend['name'];
 			var id = friend['id'];
-			getMugshot(id);
+			getMugshot(id, name);
 		}
 	});
 </script>
 {% endautoescape %}
 <div id="contents">
-	{% for friend in friendarr %}
-	<img id="friendthumb_{{friend.id}}" src="https://graph.facebook.com/{{friend.id}}/picture" alt="{{friend.name}}"/>
-	{% endfor %}
+	<div id="progress_container">
+		<div id="progressbar"><div id="progress"></div></div>
+		<div id="progresstext"></div>
+	</div>
 </div>
 {% endblock %}

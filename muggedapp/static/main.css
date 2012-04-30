@@ -1,6 +1,11 @@
+body {font-family:"lucida grande",tahoma,verdana,arial,sans-serif; font-size: 11px;}
 img.dim {opacity: 0.4;}
 img.mugshot {width: 120px; height: 160px}
 div.mug_container{display: inline-block; position: relative}
 div.mug_container a.button.save {position: absolute; top: 0; left: 0; display: none}
 div.mug_container a.button.delete {position: absolute; bottom: 0; left: 0; display: none}
 div.mug_container:hover a.button {display: inline-block}
+
+div#progresstext {height: 1em; text-align: center}
+div#progressbar {margin: 0 auto; width: 50%; height: 10px; border: 1px solid black; position: relative}
+div#progress {position: absolute; background-color: #3b5998; left: 0; top: 0; height: 100%}

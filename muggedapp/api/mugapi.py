@@ -28,7 +28,14 @@ def reject(id, mugshot):
 	mugshot = MugshotSearchResult.objects.filter(search__fbuser__fbid=id).get(arrestpath=mugshot)
 	mugshot.matches_user = False
 	mugshot.save()
-		
+
+def reject_all(id):
+	mugshots = MugshotSearchResult.objects.filter(search__fbuser__fbid=id, matches_user=None)
+	mugshots.update(matches_user=False)
+	
+def verify_all(id):
+	mugshots = MugshotSearchResult.objects.filter(search__fbuser__fbid=id, matches_user=None)
+	mugshots.update(matches_user=True)
 
 def search_and_update(fbuser):
 	id = fbuser['id']
