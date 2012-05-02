@@ -17,7 +17,7 @@ class MugshotSearch(models.Model):
 	last_searched = models.DateTimeField(default=datetime.datetime(1970,1,1))
 	
 	class Meta:
-		unique_together = ('fname', 'lname', 'birthdate', 'gender')
+		unique_together = ('fbuser', 'fname', 'lname', 'birthdate', 'gender')
 		
 	def search_requests(self):
 		requests = [{'fname': self.fname, 'lname': self.lname}]
