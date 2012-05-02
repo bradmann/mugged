@@ -1,11 +1,13 @@
-from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult
+from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult, Arrest
 from django.utils import timezone
+from bs4 import BeautifulSoup
 
 import datetime
 import requests
 import re
 
-base_uri = 'http://florida.arrests.org/search.php'
+base_uri = 'http://florida.arrests.org'
+search_uri = base_uri + '/search.php'
 	
 def get_birthdate(birthday):
 	if not birthday or len(birthday.split('/')) != 3:
@@ -14,9 +16,12 @@ def get_birthdate(birthday):
 	return datetime.date(int(year), int(month), int(day))
 	
 def verify(id, mugshot):
-	mugshot = MugshotSearchResult.objects.filter(search__fbuser__fbid=id).get(arrestpath=mugshot)
-	mugshot.matches_user = True
-	mugshot.save()
+	ms = MugshotSearchResult.objects.filter(search__fbuser__fbid=id).get(arrestpath=mugshot)
+	ms.matches_user = True
+	ms.save()
+	data = scrape_mugshot(base_uri + mugshot)
+	Arrest.objects.create(result=ms, name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
+		description=data.get('description'), race=data.get('race'), mugshot_image=data.get('mugshot_image'))
 	
 def reject(id, mugshot):
 	mugshot = MugshotSearchResult.objects.filter(search__fbuser__fbid=id).get(arrestpath=mugshot)
@@ -58,7 +63,7 @@ def search_and_update(fbuser):
 	return MugshotSearchResult.objects.filter(search__fbuser=dbUser).exclude(matches_user=False).values()	
 
 def search_mugshot_web(request_params):
-	req = requests.get(base_uri, params=request_params)
+	req = requests.get(search_uri, params=request_params)
 	page = req.content
 	imgpaths = re.findall("<img src='(/thumbs/[^']*)'", page)
 	arrestpaths = re.findall("<a href='(/Arrests/[^']*)'", page)
@@ -69,7 +74,7 @@ def search_mugshot_web(request_params):
 	patharr = paths[:]
 	while len(paths) == 42:
 		request_params['page'] = pagenum
-		req = requests.get(base_uri, params=request_params)
+		req = requests.get(search_uri, params=request_params)
 		page = req.content
 		imgpaths = re.findall("<img src='(/thumbs/[^']*)'", page)
 		arrestpaths = re.findall("<a href='(/Arrests/[^']*)'", page)
@@ -77,3 +82,33 @@ def search_mugshot_web(request_params):
 		patharr.extend(paths)
 		pagenum += 1
 	return patharr
+	
+def scrape_mugshot(uri):
+	req = requests.get(uri)
+	html = req.content
+	soup = BeautifulSoup(html)
+	tables = soup.findAll('table', id='info')
+	vals = {}
+	nameCell = soup.findAll('td', {'colspan': 4})[0].text
+	vals['name'] = nameCell
+	vals['description'] = soup.find('meta', attrs={'name': 'description'})['content']
+	for t in tables:
+		rows = t.findAll('tr')
+		for row in rows:
+			tds = row.findAll('td', {'colspan': None})
+			cells = [tds[i] for i in xrange(0, len(tds), 2)]
+			for cell in cells:
+				if cell.b != None and cell.b.string != '&nbsp;':
+					nextCell = cell.findNextSiblings('td')[0]
+					vals[cell.b.string.strip().lower().replace(' ', '_')] = nextCell.text.lstrip(':').replace('&nbsp;', ' ').replace('&quot;', '"').strip()
+	arrDate = vals['arrest_date'].split('-')
+	vals['arrest_date'] = datetime.datetime(int(arrDate[2]), int(arrDate[0]), int(arrDate[1]))
+	match = re.search("'(/mugs/[^']*)", html)
+	vals['mugshot_image'] = match.group(1)
+	headers = soup.findAll('div', id='faderbarsmall')
+	for header in headers:
+		if header.content == 'Charges':
+			charge_table = header.next_sibling
+			vals['charges'] = '\\n'.join(charge_table.stripped_strings)
+			break
+	return vals

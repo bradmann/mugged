@@ -42,12 +42,13 @@ class MugshotSearchResult(models.Model):
 	matches_user = models.NullBooleanField()
 
 class Arrest(models.Model):
-	fbuser = models.ForeignKey(FacebookUser)
-	name = models.CharField(max_length=255)
-	arrest_date = models.DateTimeField()
-	charges = models.TextField()
-	location = models.CharField(max_length=1023)
-	mugshot = models.ImageField(upload_to='mugshots')
+	result = models.ForeignKey(MugshotSearchResult)
+	name = models.CharField(max_length=255, blank=True, null=True)
+	arrest_date = models.DateTimeField(blank=True, null=True)
+	charges = models.TextField(blank=True, null=True)
+	description = models.CharField(max_length=2047, blank=True, null=True)
+	mugshot_image = models.URLField(max_length=1023, blank=True, null = True)
+	race = models.CharField(max_length=255, blank=True, null=True)
 	
 	def __unicode__(self):
 		return self.name
