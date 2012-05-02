@@ -21,7 +21,7 @@ class MugshotSearch(models.Model):
 		
 	def search_requests(self):
 		requests = [{'fname': self.fname, 'lname': self.lname}]
-		if self.mname: requests.append({'fname': self.fname, 'lname': self.mname})
+		if self.mname: requests.append({'fname': self.fname, 'lname': self.mname.strip('-')})
 		if '-' in self.lname:
 			requests.append({'fname': self.fname, 'lname': self.lname.split('-')[0]})
 			requests.append({'fname': self.fname, 'lname': self.lname.split('-')[1]})
