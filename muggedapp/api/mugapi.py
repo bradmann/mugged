@@ -55,7 +55,7 @@ def search_and_update(fbuser):
 				for result in results:
 					MugshotSearchResult.objects.create(search=search, thumbpath=result['thumbpath'], arrestpath=result['arrestpath'])
 	
-	return MugshotSearchResult.objects.filter(search__fbuser=dbUser).values()	
+	return MugshotSearchResult.objects.filter(search__fbuser=dbUser).exclude(matches_user=False).values()	
 
 def search_mugshot_web(request_params):
 	req = requests.get(base_uri, params=request_params)
