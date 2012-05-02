@@ -7,7 +7,7 @@ import json
 
 from api import fbapi, mugapi
 
-@require_http_methods(['POST'])
+@require_http_methods(['GET', 'POST'])
 def index(request):
 	friendarr = fbapi.get_friends(request)
 	friendstring = json.dumps(friendarr)

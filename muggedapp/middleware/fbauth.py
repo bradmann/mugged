@@ -1,10 +1,14 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.conf import settings
 from base64 import urlsafe_b64decode, urlsafe_b64encode
 import hmac
 import hashlib
 import json
+import urllib
+import requests
 
+oauth_uri = 'https://www.facebook.com/dialog/oauth?client_id=' + settings.FBAPI_APP_ID + '&scope=' + ','.join(settings.FBAPI_SCOPE)
+at_uri = 'https://graph.facebook.com/oauth/access_token?client_id=' + settings.FBAPI_APP_ID + '&client_secret=' + settings.FBAPI_APP_SECRET
 
 class FBAuthMiddleware:
 	def get_token(self, signed_request):
@@ -24,12 +28,25 @@ class FBAuthMiddleware:
 		return HttpResponse("<script>var oauth_url = 'https://www.facebook.com/dialog/oauth/?client_id={0}&redirect_uri=' + encodeURIComponent('https://apps.facebook.com/{1}/') + '&scope={2}';window.top.location = oauth_url;</script>".format(settings.FBAPI_APP_ID, settings.FBAPI_APP_NAMESPACE, ','.join(settings.FBAPI_SCOPE)))
 
 	def process_request(self, request):
-		signed_request = request.POST.get('signed_request', None)
-		if not signed_request:
-			return None
-		access_token = self.get_token(signed_request)
-		if not access_token:
-			return self.oauth_redirect()
-		else:
-			request.session['access_token'] = access_token
-			return None
+		if request.method == 'POST':
+			signed_request = request.POST.get('signed_request', None)
+			if not signed_request:
+				return None
+			access_token = self.get_token(signed_request)
+			if not access_token:
+				return self.oauth_redirect()
+			else:
+				request.session['access_token'] = access_token
+				return None
+		elif request.method == 'GET':
+			code = request.GET.get('code')
+			access_token = request.session.get('access_token')
+			if not access_token and not code:
+				return HttpResponseRedirect(oauth_uri + '&redirect_uri=' + request.build_absolute_uri() + '&state=login')
+			elif code:
+				req = requests.get(at_uri + '&redirect_uri=' + request.build_absolute_uri() + '&code=' + code)
+				d = urllib.parse.parse_qs(req.text)
+				request.session['access_token'] = d['access_token']
+				return None
+			else:
+				return None
