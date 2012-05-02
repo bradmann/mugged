@@ -105,10 +105,15 @@ def scrape_mugshot(uri):
 	vals['arrest_date'] = datetime.datetime(int(arrDate[2]), int(arrDate[0]), int(arrDate[1]))
 	match = re.search("'(/mugs/[^']*)", html)
 	vals['mugshot_image'] = match.group(1)
-	headers = soup.findAll('div', id='faderbarsmall')
+	vals['charges'] = ''
+	headers = soup.findAll('div', id='fadebarsmall')
 	for header in headers:
-		if header.content == 'Charges':
-			charge_table = header.next_sibling
-			vals['charges'] = '\\n'.join(charge_table.stripped_strings)
-			break
+		if header.string == 'Charges':
+			for sib in header.next_siblings:
+				if not hasattr(sib, 'name'):
+					vals['charges'] += sib
+				elif sib.name != 'div':
+					if sib.string: vals['charges'] += sib.string
+				else:
+					break
 	return vals
