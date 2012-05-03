@@ -48,7 +48,6 @@ class FBAuthMiddleware:
 				return HttpResponseRedirect(oauth_uri + '&redirect_uri=' + request.build_absolute_uri() + '&state=login')
 			elif code:
 				req = requests.get(at_uri + '&redirect_uri=' + request.build_absolute_uri() + '&code=' + code)
-				logger.error(req.text)
 				if req.status_code == 200:
 					d = urlparse.parse_qs(req.text)
 					request.session['access_token'] = d['access_token'][0]
