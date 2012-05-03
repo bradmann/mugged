@@ -148,7 +148,11 @@ LOGGING = {
             'level': 'ERROR',
             'filters': ['require_debug_false'],
             'class': 'django.utils.log.AdminEmailHandler'
-        }
+        },
+		'logfile': {
+			'class': 'logging.handlers.WatchedFileHandler',
+			'filename': '/var/log/django/mugged.log'
+		}
     },
     'loggers': {
         'django.request': {
@@ -156,6 +160,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': True,
         },
+		'mugged': {
+			'handlers': ['logfile'],
+			'level': 'WARNING', # Or maybe INFO or DEBUG
+			'propogate': False
+		}
     }
 }
 
