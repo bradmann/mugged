@@ -27,7 +27,7 @@ class MugshotSearch(models.Model):
 			requests.append({'fname': self.fname, 'lname': self.lname.split('-')[1]})
 		for req in requests:
 			req['fpartial'] = True
-			req['startdate'] = self.last_searched.strftime('%m%%2F%d%%2F%Y')
+			req['startdate'] = self.last_searched.strftime('%m/%d/%Y')
 			if self.gender: req['sex'] = self.gender
 			if self.birthdate:
 				age = int((datetime.date.today() - self.birthdate).days / 365.25)

@@ -53,12 +53,12 @@ def search_and_update(fbuser):
 	dbSearch = MugshotSearch.objects.filter(fbuser=dbUser)
 	for search in dbSearch:
 		if search.last_searched < (timezone.now() - datetime.timedelta(1)):
-			search.last_searched=timezone.now()
-			search.save()
 			for request_params in search.search_requests():
 				results = search_mugshot_web(request_params)
 				for result in results:
 					MugshotSearchResult.objects.create(search=search, thumbpath=result['thumbpath'], arrestpath=result['arrestpath'])
+			search.last_searched = timezone.now()
+			search.save()
 	
 	return MugshotSearchResult.objects.filter(search__fbuser=dbUser).exclude(matches_user=False).values()	
 
