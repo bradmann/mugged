@@ -70,6 +70,7 @@
 						$('#contents').append(data);
 					}
 					friendCount++;
+					nextFetch++;
 					var width = friendCount * 100/numFriends;
 					$('#progress').width(width.toString() + '%');
 					if (width != 100) {
@@ -77,14 +78,20 @@
 					} else {
 						$('#progress_container').slideUp();
 					}
+	
+					if (nextFetch < numFriends) {
+						var friend = friends[nextFetch];
+						getMugshot(friend['id'], friend['name']); 
+					}
 				}
 			});
 		}
 		var friends = {{friends}};
 		var numFriends = friends.length;
 		var friendCount = 0;
-		for (var idx in friends) {
-			var friend = friends[idx];
+		var nextFetch = 4;
+		for (var i = 0; i < 5 && i < numFriends; i++) {
+			var friend = friends[i];
 			var name = friend['name'];
 			var id = friend['id'];
 			getMugshot(id, name);
