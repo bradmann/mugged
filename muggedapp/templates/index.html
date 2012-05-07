@@ -69,11 +69,14 @@
 					if (xhr.status != 204) {
 						$('#contents').append(data);
 					}
+				},
+				complete: function(xhr, status) {
 					friendCount++;
 					nextFetch++;
 					var width = friendCount * 100/numFriends;
-					$('#progress').width(width.toString() + '%');
-					if (width != 100) {
+					$('#progress').stop();
+					$('#progress').animate({'width': width.toString() + '%'});
+					if (width < 100) {
 						$('#progresstext').text('Search complete for ' + name);
 					} else {
 						$('#progress_container').slideUp();

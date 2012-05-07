@@ -32,3 +32,7 @@ def mugshot(request, id):
 		elif post['action'] == 'reject_all':
 			mugapi.reject_all(id)
 		return HttpResponse('', status=204)
+
+@require_http_methods(['GET'])
+def login(request):
+	return HttpResponse('')

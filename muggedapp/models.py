@@ -1,23 +1,28 @@
 from django.db import models
+from djangotoolbox.fields import ListField, EmbeddedModelField
+
+from django_mongodb_engine.storage import GridFSStorage
+gridfs_storage = GridFSStorage()
 import datetime
 
 class FacebookUser(models.Model):
-	fbid = models.CharField(primary_key=True, max_length=255)
+	fbid = models.CharField(max_length=255)
+	mugshots = ListField(EmbeddedModelField('Mugshot'))
 	
 	def __unicode__(self):
 		return self.fbid	
 
 class MugshotSearch(models.Model):
-	fbuser = models.ForeignKey(FacebookUser)
-	fname = models.CharField(max_length=255)
-	mname = models.CharField(max_length=255, blank=True, null=True)
-	lname = models.CharField(max_length=255)
-	birthdate = models.DateField(blank=True, null=True)
-	gender = models.CharField(max_length=1, blank=True, null=True)
-	last_searched = models.DateTimeField(default=datetime.datetime(1970,1,1))
+	fname = models.CharField(max_length=255, db_index=True)
+	mname = models.CharField(max_length=255, blank=True, null=True, db_index=True)
+	lname = models.CharField(max_length=255, db_index=True)
+	birthdate = models.DateField(blank=True, null=True, db_index=True)
+	gender = models.CharField(max_length=1, blank=True, null=True, db_index=True)
+	last_searched = models.DateTimeField(default=datetime.datetime(1970,1,1), db_index=True)
+	results = ListField(EmbeddedModelField('MugshotSearchResult'))
 	
 	class Meta:
-		unique_together = ('fbuser', 'fname', 'lname', 'birthdate', 'gender')
+		unique_together = ('fname', 'lname', 'birthdate', 'gender')
 		
 	def search_requests(self):
 		requests = [{'fname': self.fname, 'lname': self.lname}]
@@ -36,18 +41,16 @@ class MugshotSearch(models.Model):
 		return requests
 		
 class MugshotSearchResult(models.Model):
-	search = models.ForeignKey(MugshotSearch)
 	thumbpath = models.URLField(max_length=1023)
 	arrestpath = models.URLField(max_length=1023)
 	matches_user = models.NullBooleanField()
 
-class Arrest(models.Model):
-	result = models.ForeignKey(MugshotSearchResult)
-	name = models.CharField(max_length=255, blank=True, null=True)
+class Mugshot(models.Model):
+	name = models.CharField(max_length=768)
 	arrest_date = models.DateTimeField(blank=True, null=True)
 	charges = models.TextField(blank=True, null=True)
 	description = models.CharField(max_length=2047, blank=True, null=True)
-	mugshot_image = models.URLField(max_length=1023, blank=True, null = True)
+	mugshot_image = models.FileField(storage=gridfs_storage, upload_to='/')
 	race = models.CharField(max_length=255, blank=True, null=True)
 	
 	def __unicode__(self):

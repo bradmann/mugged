@@ -1,5 +1,4 @@
-from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult, Arrest
-from django.utils import timezone
+from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult, Mugshot
 from bs4 import BeautifulSoup
 
 import datetime
@@ -20,7 +19,7 @@ def verify(id, mugshot):
 	ms.matches_user = True
 	ms.save()
 	data = scrape_mugshot(base_uri + mugshot)
-	Arrest.objects.create(result=ms, name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
+	Mugshot.objects.create(result=ms, name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
 		description=data.get('description'), race=data.get('race'), mugshot_image=data.get('mugshot_image'))
 	
 def reject(id, mugshot):
@@ -47,20 +46,26 @@ def search_and_update(fbuser):
 	
 	dbUser, created = FacebookUser.objects.get_or_create(fbid=id)
 
-	dbSearch = MugshotSearch.objects.filter(fbuser=dbUser, fname=fname, mname=mname, lname=lname, birthdate=birthdate, gender=gender)
+	dbSearch = MugshotSearch.objects.filter(fname=fname, mname=mname, lname=lname, birthdate=birthdate, gender=gender)
 	if dbSearch.count() == 0:
-		MugshotSearch.objects.create(fbuser=dbUser, fname=fname, mname=mname, lname=lname, birthdate=birthdate, gender=gender)
-	dbSearch = MugshotSearch.objects.filter(fbuser=dbUser)
+		MugshotSearch.objects.create(fname=fname, mname=mname, lname=lname, birthdate=birthdate, gender=gender)
+		dbSearch = MugshotSearch.objects.filter(fname=fname, mname=mname, lname=lname, birthdate=birthdate, gender=gender)
 	for search in dbSearch:
-		if search.last_searched < (timezone.now() - datetime.timedelta(1)):
+		if search.last_searched < (datetime.datetime.now() - datetime.timedelta(1)):
 			for request_params in search.search_requests():
 				results = search_mugshot_web(request_params)
+				search_results = []
 				for result in results:
-					MugshotSearchResult.objects.create(search=search, thumbpath=result['thumbpath'], arrestpath=result['arrestpath'])
-			search.last_searched = timezone.now()
+					search_results.append(MugshotSearchResult.objects.create(thumbpath=result['thumbpath'], arrestpath=result['arrestpath']))
+				search.results.extend(search_results)
+			search.last_searched = datetime.datetime.now()
 			search.save()
-	
-	return MugshotSearchResult.objects.filter(search__fbuser=dbUser).exclude(matches_user=False).values()	
+	mugsearches = []
+	for mss in MugshotSearch.objects.filter(fname=fname, mname=mname, lname=lname, birthdate=birthdate, gender=gender):
+		for s in mss.results:
+			if not s.matches_user or s.matches_user == True:
+				mugsearches.append(s)
+	return mugsearches
 
 def search_mugshot_web(request_params):
 	req = requests.get(search_uri, params=request_params)

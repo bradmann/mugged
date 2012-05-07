@@ -7,5 +7,6 @@ div.mug_container a.button.delete {position: absolute; bottom: 0; left: 0; displ
 div.mug_container:hover a.button {display: inline-block}
 
 div#progresstext {height: 1em; text-align: center}
-div#progressbar {margin: 0 auto; width: 50%; height: 10px; border: 1px solid black; position: relative}
+div#progressbar {margin: 0 auto; width: 50%; height: 10px; border: 1px solid black; position: relative;}
 div#progress {position: absolute; background-color: #3b5998; left: 0; top: 0; height: 100%}
+div#progress_container {position: fixed; bottom: 0; left: 0; width: 100%; background-color: #FFF; z-index: 2; padding: 5px;}
