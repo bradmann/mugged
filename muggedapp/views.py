@@ -35,4 +35,4 @@ def mugshot(request, id):
 
 @require_http_methods(['GET'])
 def login(request):
-	return HttpResponse('This is the login page')
+	return HttpResponse('This is the login page again.')
