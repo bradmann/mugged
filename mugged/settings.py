@@ -105,6 +105,8 @@ MIDDLEWARE_CLASSES = (
 	'muggedapp.middleware.fbauth.FBAuthMiddleware'
 )
 
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
 ROOT_URLCONF = 'mugged.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
