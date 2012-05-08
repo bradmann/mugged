@@ -11,7 +11,7 @@ import datetime
 
 oauth_uri = 'https://www.facebook.com/dialog/oauth?client_id=' + settings.FBAPI_APP_ID + '&scope=' + ','.join(settings.FBAPI_SCOPE)
 at_uri = 'https://graph.facebook.com/oauth/access_token?client_id=' + settings.FBAPI_APP_ID + '&client_secret=' + settings.FBAPI_APP_SECRET
-redirect_uri = 'https://entropy6.com/'
+redirect_uri = 'https://entropy6.com/mugged/'
 
 class FBAuthMiddleware:
 	def get_token(self, signed_request):
