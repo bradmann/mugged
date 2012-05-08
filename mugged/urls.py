@@ -6,8 +6,8 @@ from django.conf.urls.defaults import patterns, include, url
 
 urlpatterns = patterns('',
     # Examples:
-    url(r'^$', 'muggedapp.views.index', name='index'),
-	url(r'^mugshot/(?P<id>\d+)', 'muggedapp.views.mugshot', name='mugshot')
+    url(r'^mugged/$', 'muggedapp.views.index', name='index'),
+	url(r'^mugged/mugshot/(?P<id>\d+)', 'muggedapp.views.mugshot', name='mugshot')
     # url(r'^mugged/', include('mugged.foo.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
