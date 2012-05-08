@@ -30,6 +30,9 @@ class MugshotSearch(models.Model):
 		if '-' in self.lname:
 			requests.append({'fname': self.fname, 'lname': self.lname.split('-')[0]})
 			requests.append({'fname': self.fname, 'lname': self.lname.split('-')[1]})
+		if ' ' in self.lname:
+			requests.append({'fname': self.fname, 'lname': self.lname.split(' ')[0]})
+			requests.append({'fname': self.fname, 'lname': self.lname.split(' ')[1]})
 		for req in requests:
 			req['fpartial'] = True
 			req['startdate'] = self.last_searched.strftime('%m/%d/%Y')
