@@ -1,16 +1,20 @@
 from django.db import models
-from djangotoolbox.fields import ListField, EmbeddedModelField
+from djangotoolbox.fields import ListField, EmbeddedModelField, DictField
 
 from django_mongodb_engine.storage import GridFSStorage
-gridfs_storage = GridFSStorage()
 import datetime
+gridfs_storage = GridFSStorage()
 
 class FacebookUser(models.Model):
-	fbid = models.CharField(max_length=255)
+	fbid = models.CharField(max_length=255, db_index=True)
 	mugshots = ListField(EmbeddedModelField('Mugshot'))
 	
 	def __unicode__(self):
-		return self.fbid	
+		return self.fbid
+
+class AdminDocument(models.Model):
+	name = models.CharField(max_length=255)
+	document = DictField()
 
 class MugshotSearch(models.Model):
 	fname = models.CharField(max_length=255, db_index=True)
@@ -46,7 +50,8 @@ class MugshotSearch(models.Model):
 class MugshotSearchResult(models.Model):
 	thumbpath = models.URLField(max_length=1023)
 	arrestpath = models.URLField(max_length=1023)
-	matches_user = models.NullBooleanField()
+	matches_user = models.CharField(max_length=255, blank=True, null=True)
+	not_matched = ListField(models.CharField(max_length=255))
 
 class Mugshot(models.Model):
 	name = models.CharField(max_length=768)

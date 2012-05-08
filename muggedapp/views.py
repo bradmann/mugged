@@ -33,6 +33,14 @@ def mugshot(request, id):
 			mugapi.reject_all(id)
 		return HttpResponse('', status=204)
 
+@require_http_methods(['POST'])
+def admin(request):
+	post = json.loads(request.raw_post_data)
+	if post['action'] == 'update_daily_mugshots':
+		mugapi.update_daily_mugshots()
+		return HttpResponse('This is where the updating will happen.')
+	return HttpResponse('Action not recognized.')
+
 @require_http_methods(['GET'])
 def login(request):
 	return HttpResponse('This is the login page.')

@@ -35,6 +35,18 @@ def verify_all(id):
 	mugshots = MugshotSearchResult.objects.filter(search__fbuser__fbid=id, matches_user=None)
 	mugshots.update(matches_user=True)
 
+def update_daily_mugshots():
+	yesterday = datetime.datetime.now() - datetime.timedelta(1)
+	doc, created = AdminDocument.objects.get_or_create(name='DailyMugshotScrape', defaults={'document': {'last_scrape': yesterday}})
+	request_params = {'startdate': doc.document['last_scrape']}
+	results = search_mugshot_web(request_params)
+	doc.document['last_scrape'] = datetime.datetime.now()
+	doc.save()
+	for result in results:
+		data = scrape_mugshot(base_uri + result['arrestpath'])
+		Mugshot.objects.create(result=ms, name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
+			description=data.get('description'), race=data.get('race'), mugshot_image=data.get('mugshot_image'))
+
 def search_and_update(fbuser):
 	id = fbuser['id']
 	fname = fbuser.get('first_name')
