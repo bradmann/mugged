@@ -49,7 +49,7 @@ def update_daily_mugshots():
 		data = scrape_mugshot(base_uri + result['arrestpath'])
 		if not data: continue
 		uris.append(data.get('uri'))
-		Mugshot.objects.create(id=data.get('uri'), name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
+		Mugshot.objects.create(uri=data.get('uri'), name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
 			description=data.get('description'), race=data.get('race'), mugshot_image=data.get('mugshot_image'))
 	return uris
 
