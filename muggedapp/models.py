@@ -2,6 +2,7 @@ from django.db import models
 from djangotoolbox.fields import ListField, EmbeddedModelField, DictField
 
 from django_mongodb_engine.storage import GridFSStorage
+from django_mongodb_engine.fields import GridFSField
 import datetime
 gridfs_storage = GridFSStorage()
 
@@ -58,7 +59,7 @@ class Mugshot(models.Model):
 	arrest_date = models.DateTimeField(blank=True, null=True)
 	charges = models.TextField(blank=True, null=True)
 	description = models.CharField(max_length=2047, blank=True, null=True)
-	mugshot_image = models.FileField(storage=gridfs_storage, upload_to='/')
+	mugshot_image = GridFSField()
 	race = models.CharField(max_length=255, blank=True, null=True)
 	
 	def __unicode__(self):

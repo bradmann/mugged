@@ -1,5 +1,6 @@
-from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult, Mugshot
+from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult, Mugshot, AdminDocument
 from bs4 import BeautifulSoup
+from StringIO import StringIO
 
 import datetime
 import requests
@@ -37,14 +38,18 @@ def verify_all(id):
 
 def update_daily_mugshots():
 	yesterday = datetime.datetime.now() - datetime.timedelta(1)
-	doc, created = AdminDocument.objects.get_or_create(name='DailyMugshotScrape', defaults={'document': {'last_scrape': yesterday}})
-	request_params = {'startdate': doc.document['last_scrape']}
+	twodaysago = datetime.datetime.now() - datetime.timedelta(2)
+	doc, created = AdminDocument.objects.get_or_create(name='DailyMugshotScrape', defaults={'document': {'last_scrape': twodaysago}})
+	if doc.document['last_scrape'].strftime('%Y-%m-%d') == yesterday.strftime('%Y-%m-%d'): return
+	request_params = {'startdate': doc.document['last_scrape'].strftime('%Y-%m-%d'), 'enddate': yesterday.strftime('%Y-%m-%d')}
 	results = search_mugshot_web(request_params)
-	doc.document['last_scrape'] = datetime.datetime.now()
+	doc.document['last_scrape'] = datetime.datetime.now() - datetime.timedelta(1)
 	doc.save()
 	for result in results:
+		print result['arrestpath']
 		data = scrape_mugshot(base_uri + result['arrestpath'])
-		Mugshot.objects.create(result=ms, name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
+		if not data: continue
+		Mugshot.objects.create(name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
 			description=data.get('description'), race=data.get('race'), mugshot_image=data.get('mugshot_image'))
 
 def search_and_update(fbuser):
@@ -83,7 +88,7 @@ def search_mugshot_web(request_params):
 	req = requests.get(search_uri, params=request_params)
 	page = req.content
 	imgpaths = re.findall("<img src='(/thumbs/[^']*)'", page)
-	arrestpaths = re.findall("<a href='(/Arrests/[^']*)'", page)
+	arrestpaths = re.findall("<a href='(/Arrests/.*?)' ", page)
 	if len(imgpaths) == 0:
 		return []
 	paths = [{'thumbpath': imgpaths[i], 'arrestpath': arrestpaths[i], 'matches_user': None} for i in xrange(len(imgpaths))]
@@ -94,7 +99,8 @@ def search_mugshot_web(request_params):
 		req = requests.get(search_uri, params=request_params)
 		page = req.content
 		imgpaths = re.findall("<img src='(/thumbs/[^']*)'", page)
-		arrestpaths = re.findall("<a href='(/Arrests/[^']*)'", page)
+		arrestpaths = re.findall("<a href='(/Arrests/[^ ]*) ", page)
+		arrestpaths = [path.rstrip("'").replace('<i>', '').replace('</i>', '') for path in arrestpaths]
 		paths = [{'thumbpath': imgpaths[i], 'arrestpath': arrestpaths[i], 'matches_user': None} for i in xrange(len(imgpaths))]
 		patharr.extend(paths)
 		pagenum += 1
@@ -102,12 +108,14 @@ def search_mugshot_web(request_params):
 	
 def scrape_mugshot(uri):
 	req = requests.get(uri)
+	if req.status_code != requests.codes.ok:
+		return None
 	html = req.content
 	soup = BeautifulSoup(html)
 	tables = soup.findAll('table', id='info')
 	vals = {}
-	nameCell = soup.findAll('td', {'colspan': 4})[0].text
-	vals['name'] = nameCell
+	nameCell = soup.findAll('td', {'colspan': 4})
+	vals['name'] = nameCell[0].text if len(nameCell) > 0 else ''
 	vals['description'] = soup.find('meta', attrs={'name': 'description'})['content']
 	for t in tables:
 		rows = t.findAll('tr')
@@ -121,7 +129,8 @@ def scrape_mugshot(uri):
 	arrDate = vals['arrest_date'].split('-')
 	vals['arrest_date'] = datetime.datetime(int(arrDate[2]), int(arrDate[0]), int(arrDate[1]))
 	match = re.search("'(/mugs/[^']*)", html)
-	vals['mugshot_image'] = match.group(1)
+	imgreq = requests.get(base_uri + match.group(1))
+	vals['mugshot_image'] = imgreq.raw
 	vals['charges'] = ''
 	headers = soup.findAll('div', id='fadebarsmall')
 	for header in headers:
