@@ -55,6 +55,7 @@ class MugshotSearchResult(models.Model):
 	not_matched = ListField(models.CharField(max_length=255))
 
 class Mugshot(models.Model):
+	id = models.CharField(max_length=1023)
 	name = models.CharField(max_length=768)
 	arrest_date = models.DateTimeField(blank=True, null=True)
 	charges = models.TextField(blank=True, null=True)

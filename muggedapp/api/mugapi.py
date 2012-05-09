@@ -1,6 +1,5 @@
 from muggedapp.models import FacebookUser, MugshotSearch, MugshotSearchResult, Mugshot, AdminDocument
 from bs4 import BeautifulSoup
-from StringIO import StringIO
 
 import datetime
 import requests
@@ -45,12 +44,14 @@ def update_daily_mugshots():
 	results = search_mugshot_web(request_params)
 	doc.document['last_scrape'] = datetime.datetime.now() - datetime.timedelta(1)
 	doc.save()
+	uris = []
 	for result in results:
-		print result['arrestpath']
 		data = scrape_mugshot(base_uri + result['arrestpath'])
 		if not data: continue
-		Mugshot.objects.create(name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
+		uris.append(data.get('uri'))
+		Mugshot.objects.create(id=data.get('uri'), name=data.get('name'), arrest_date=data.get('arrest_date'), charges=data.get('charges'),
 			description=data.get('description'), race=data.get('race'), mugshot_image=data.get('mugshot_image'))
+	return uris
 
 def search_and_update(fbuser):
 	id = fbuser['id']
@@ -113,7 +114,7 @@ def scrape_mugshot(uri):
 	html = req.content
 	soup = BeautifulSoup(html)
 	tables = soup.findAll('table', id='info')
-	vals = {}
+	vals = {'uri': uri}
 	nameCell = soup.findAll('td', {'colspan': 4})
 	vals['name'] = nameCell[0].text if len(nameCell) > 0 else ''
 	vals['description'] = soup.find('meta', attrs={'name': 'description'})['content']
